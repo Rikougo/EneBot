@@ -1,0 +1,36 @@
+{
+  "name": "ene-bot",
+  "version": "0.0.0",
+  "description": "Private bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./bin/index.js",
+    "tsc": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rikougo/enebot.git"
+  },
+  "keywords": [
+    "discord-bot",
+    "discord",
+    "music-bot",
+    "weeb"
+  ],
+  "author": "Rikougo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Rikougo/enebot/issues"
+  },
+  "homepage": "https://github.com/Rikougo/enebot#readme",
+  "dependencies": {
+    "date-fns": "^2.16.1",
+    "discord.js": "^12.3.1",
+    "ffmepg": "0.0.2-security",
+    "fs": "0.0.1-security",
+    "typescript": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.2"
+  }
+}
