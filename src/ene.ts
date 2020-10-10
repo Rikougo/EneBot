@@ -1,5 +1,7 @@
 import * as discord from "discord.js";
 import * as fs from "fs";
+import YouTube from "popyt";
+import { AudioManager } from "./classes/AudioManager";
 import { BotModule } from "./classes/BotModule";
 
 import { Config } from "./classes/Config";
@@ -11,12 +13,20 @@ export class Ene extends discord.Client {
 
     private _modules : Map<string, BotModule[]>;
 
+    public readonly youtube : YouTube;
+
+    public audioManagers : Map<string, AudioManager>;
+
     constructor() {
         super();
 
         this._config = require(`.${Ene.CONFIG_PATH}`);
         
         this._modules = new Map();
+
+        this.youtube = new YouTube(this._config.ytbApiKey);
+
+        this.audioManagers = new Map();
     }
 
     prefix() : string { return this._config.prefix; }
