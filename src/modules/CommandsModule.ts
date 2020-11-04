@@ -28,6 +28,34 @@ export class CommandsModule implements BotModule {
         });
     }
 
+    loadCommandDir(dir: string) {
+        let that = this;
+        let dirs = [dir];
+        
+        while (dirs.length > 0) {
+            let path : string = dirs.pop()!;
+
+            fs.readdir(path, {}, (err, files) => {
+                if (err) throw err;
+                
+                files.forEach(function(value: any, index: any, array: any) {
+                    // file to load
+                    if (value.includes(".")) {
+                        let module_name = value.split(".")[0];
+        
+                        let modulePath = `${path}/${module_name}`.replace("/bin", "");
+                        import(modulePath).then(x => {
+                                that.loadCommand(new x.BotCommand!());
+                        });
+                    // directory to dig in
+                    } else {
+                        dirs.splice(0, 0, `${path}/${value}`);
+                    }
+                });
+            });
+        }
+    }
+
     async run(client: Ene, event: string, ...args: any[]): Promise<void> {
         let message : Message = args[0];
         let channel : TextChannel = message.channel as TextChannel;
