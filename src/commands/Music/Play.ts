@@ -13,7 +13,7 @@ export class BotCommand implements Command {
 
         if (args.length < 1) {
             if ((client.audioManagers.has(guild.id)) && client.audioManagers.get(guild.id)!.dispatcher)
-                await message.channel.send(client.audioManagers.get(guild.id)!.pause());
+                await client.audioManagers.get(guild.id)!.pause();
             else
                 await message.channel.send("Please submit a link.");
             return;

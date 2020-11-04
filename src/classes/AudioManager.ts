@@ -47,10 +47,12 @@ export class AudioManager {
     }
 
     public async play(songURL: string, forceNext: boolean = false) {
+        if (!this.connection) return;
+
         let that = this;
 
         let video : Video;
-
+        
         if (!AudioManager.YTBCHECK.test(songURL)) {
             songURL = (await this.youtube.searchVideos(songURL, 1)).results[0].url;
         }
