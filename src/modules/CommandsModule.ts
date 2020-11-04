@@ -35,23 +35,22 @@ export class CommandsModule implements BotModule {
         while (dirs.length > 0) {
             let path : string = dirs.pop()!;
 
-            fs.readdir(path, {}, (err, files) => {
-                if (err) throw err;
+            let files = fs.readdirSync(path, {});
                 
-                files.forEach(function(value: any, index: any, array: any) {
-                    // file to load
-                    if (value.includes(".")) {
-                        let module_name = value.split(".")[0];
-        
-                        let modulePath = `${path}/${module_name}`.replace("/bin", "");
-                        import(modulePath).then(x => {
-                                that.loadCommand(new x.BotCommand!());
-                        });
-                    // directory to dig in
-                    } else {
-                        dirs.splice(0, 0, `${path}/${value}`);
-                    }
-                });
+            files.forEach(function(value: any, index: any, array: any) {
+                // file to load
+                if (value.includes(".")) {
+                    let module_name = value.split(".")[0];
+    
+                    let modulePath = `../${path}/${module_name}`.replace("/bin", "");
+                    import(modulePath).then(x => {
+                            that.loadCommand(new x.BotCommand!());
+                    });
+                // directory to dig in
+                } else {
+                    dirs.splice(0, 0, `${path}/${value}`);
+                    console.log(dirs);
+                }
             });
         }
     }
