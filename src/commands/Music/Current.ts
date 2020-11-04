@@ -2,6 +2,8 @@ import { PermissionString, Message, MessageEmbed } from "discord.js";
 import { Command } from "../../classes/Command";
 import { Ene } from "../../ene";
 import { fromUnixTime } from "date-fns"
+import { Video } from "popyt";
+import { AudioManager } from "../../classes/AudioManager";
 
 export class BotCommand implements Command {
     perms_required: PermissionString[] = [];
@@ -16,27 +18,14 @@ export class BotCommand implements Command {
             return;
         }
 
-        if (!(client.audioManagers.get(guild.id)!.current === undefined)){
-            let video = client.audioManagers.get(guild.id)!.current!;
+        let audioManager : AudioManager = client.audioManagers.get(guild.id)!;
 
-            let timestamp = client.audioManagers.get(guild.id)!.dispatcher!.streamTime;
-            let videoTime = video.minutes * 60000 + video.seconds * 1000;
+        if (!(audioManager.current === undefined)){
+            let video = audioManager.current!.video;
 
-            // --- STREAM LINE --- //
-
-            let cursor = Math.ceil((timestamp / videoTime) * 100);
-
-            if (cursor % 2 !== 0) cursor += 1;
-
-            let streamLine = ""
-
-            for(let i = 0; i < 100; i += 2) {
-                streamLine += (i !== cursor ? "-" : "#");
-            }
-
-            // ------------ //
-
-            let streamTime = Math.floor(timestamp / 60000).toString().padStart(2, "0") + ":" + Math.floor((timestamp % 60000) / 1000).toString().padStart(2, "0");
+            let timestamp = audioManager.dispatcher!.streamTime + audioManager.current!.startTime * 1000;
+            
+            let streamInfos = this._buildStreamInfos(video, timestamp);
 
             const embed = new MessageEmbed()
                 .setAuthor("Now playing")
@@ -47,7 +36,7 @@ export class BotCommand implements Command {
                 .setDescription("Duration : `" + video.minutes.toString().padStart(2, "0") + ":"+ video.seconds.toString().padStart(2, "0") + "`")
                 .addField("Views", `\`${video.views}\``, true)
                 .addField("Likes", `\`${video.likes}\``, true)
-                .addField("Stream line :", `${streamLine} (${streamTime})`, false)
+                .addField("Stream line :", `${streamInfos.streamLine} (${streamInfos.streamTime})`, false)
                 .setFooter("Freydish", client.user!.avatarURL()!);
 
             await message.channel.send(embed);
@@ -56,4 +45,24 @@ export class BotCommand implements Command {
         }
     }
 
+    _buildStreamInfos(video: Video, timestamp: number) {
+        let videoTime = video.minutes * 60000 + video.seconds * 1000;
+
+        let cursor = Math.ceil((timestamp / videoTime) * 100);
+
+        if (cursor % 2 !== 0) cursor += 1;
+
+        let streamLine = ""
+
+        for(let i = 0; i < 100; i += 2) {
+            streamLine += (i !== cursor ? "-" : "#");
+        }
+
+        let streamTime = Math.floor(timestamp / 60000).toString().padStart(2, "0") + ":" + Math.floor((timestamp % 60000) / 1000).toString().padStart(2, "0");
+
+        return {
+            streamLine: streamLine,
+            streamTime: streamTime
+        }
+    }
 }

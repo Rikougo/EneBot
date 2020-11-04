@@ -17,23 +17,22 @@ export class BotCommand implements Command {
         }
         
         const queue : Video[] = await client.audioManagers.get(guild.id)!.queue();
-        const currentVid : Video | undefined = client.audioManagers.get(guild.id)!.current;
+        const currentVid : Video = client.audioManagers.get(guild.id)!.current!.video!;
+    
+        let queueText = "";   
+        queue.forEach(v => queueText += `${v.title} | ${v.minutes}:${v.seconds}\n`)
 
-        if (currentVid === undefined) return;
-    
-        let queueText = "";
-    
-        for (let video of queue) {
-            queueText += video.title + " | `" + currentVid.minutes + ":" + video.seconds + "`\n\n";
-        }
-        let fields = [{name: "__Now playing :__", value: currentVid.title + " | `" + currentVid.minutes + ":" + currentVid.seconds + "`"}];
+        let fields = [{
+            name: "__Now playing :__", 
+            value: `${currentVid.title} | ${currentVid.minutes}:${currentVid.seconds}`
+        }];
     
         if (queue.length > 0) fields.push({name: "__Next :__", value: queueText});
     
         const embed = new MessageEmbed()
             .setTitle("Queue for " + message.guild!.name)
             .setColor("#fb40ff")
-            .setThumbnail(client.audioManagers.get(guild.id)!.current!.thumbnails!.default!.url!)
+            .setThumbnail(currentVid.thumbnails!.default!.url!)
             .setFooter("Freydish", client.user!.avatarURL()!);;
     
         for (let field of fields) {

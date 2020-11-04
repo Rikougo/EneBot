@@ -19,9 +19,8 @@ export class BotCommand implements Command {
             return;
         }
     
-        if (!(client.audioManagers.has(guild.id))){
+        if (!(client.audioManagers.has(guild.id)))
             client.audioManagers.set(guild.id, new AudioManager(client, guild));
-        }
     
         if (!(client.audioManagers.get(guild.id)!.dispatcher)) {
             if (message.member!.voice.channel) {
