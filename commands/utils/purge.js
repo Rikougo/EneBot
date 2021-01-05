@@ -1,6 +1,15 @@
+/**
+ * @author Sakeiru
+ */
 const Discord = require("discord.js");
 const { ApplicationCommandOptionType } = require("discord.js").Constants;
 
+/**
+ * 
+ * @param {import('../../Ene')} client
+ * @param {Object} interaction 
+ * @param {Map<string, number|string|boolean>} args 
+ */
 const purge = (client, interaction, args) => {
     /**
      * @type {Discord.TextChannel}

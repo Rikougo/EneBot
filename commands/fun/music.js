@@ -1,14 +1,18 @@
+/**
+ * @author Sakeiru
+ */
 const { Guild, GuildMember, TextChannel, MessageEmbed } = require('discord.js');
-const EneAudio = require('../lib/EneAudio');
+const EneAudio = require('../../lib/EneAudio');
 
 /**
  * 
+ * @param {import('../../Ene')} client
  * @param {Object} interaction 
  * @param {Map<string, number|string|boolean>} args 
  */
-const music = (client, interaction, args) => {
+const music = async (client, interaction, args) => {
     if (args.has("play")) {
-        play(
+        await play(
             client, 
             interaction.guild,
             interaction.channel,
@@ -16,37 +20,37 @@ const music = (client, interaction, args) => {
             args.get("play").get("this")
         );
     } else if(args.has("skip")) {
-        skip(
+        await skip(
             client,
             interaction.guild,
             interaction.channel
         );
     } else if(args.has("current")) {
-        current(
+        await current(
             client,
             interaction.guild,
             interaction.channel
         )
     } else if(args.has("queue")) {
-        queue(
+        await queue(
             client,
             interaction.guild,
             interaction.channel
         )
     } else if(args.has("disconnect")) {
-        disconnect(
+        await disconnect(
             client, 
             interaction.guild, 
             interaction.channel
         );
     } else {
-        interaction.channel.send("WTF you doing mate ?");
+        await interaction.channel.send("WTF you doing mate ?");
     }
 };
 
 /**
  * 
- * @param {import('../Ene')} client 
+ * @param {import('../../Ene')} client 
  * @param {Guild} guild 
  * @param {TextChannel}
  * @param {GuildMember} member 
@@ -81,7 +85,7 @@ const play = async (client, guild, channel, member, song) => {
 
 /**
  * 
- * @param {import('../Ene')} client 
+ * @param {import('../../Ene')} client 
  * @param {Guild} guild 
  * @param {TextChannel} channel 
  */
@@ -115,7 +119,7 @@ const current = async (client, guild, channel) => {
 
 /**
  * 
- * @param {import('../Ene')} client 
+ * @param {import('../../Ene')} client 
  * @param {Guild} guild 
  * @param {TextChannel} channel 
  */
@@ -162,7 +166,7 @@ const queue = async (client, guild, channel) => {
 
 /**
  * 
- * @param {import('../Ene')} client 
+ * @param {import('../../Ene')} client 
  * @param {Guild} guild 
  * @param {TextChannel} channel 
  */
@@ -177,12 +181,12 @@ const skip = async (client, guild, channel) => {
         return;
     }
 
-    client.audios[guild.id].skip();
+    client.audios[guild.id].next(true);
 }
 
 /**
  * 
- * @param {import('../Ene')} client 
+ * @param {import('../../Ene')} client 
  * @param {Guild} guild 
  * @param {TextChannel} channel 
  */

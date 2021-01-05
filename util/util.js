@@ -2,6 +2,10 @@
  * @author Sakeiru
  */
 
+/**
+ * @typedef {Array<{name: string, value?: string, options?: Options}>} Options
+ * @param {Options} options 
+ */
 const mapInteractionOptions = (options) => {
     /**
      * @type {Map<string, number|string|boolean}

@@ -3,7 +3,7 @@
  */
 
 const Discord = require("discord.js");
-const { readFileSync, readdirSync } = require("fs");
+const { readFileSync, readdirSync, existsSync, Dirent } = require("fs");
 const { mapInteractionOptions } = require("./util/util");
 
 process.env.ytbToken = readFileSync("./config/ytbToken.key");
@@ -30,7 +30,7 @@ class Ene extends Discord.Client {
 
         let that = this;
 
-        this.on("interactionCreate", (interaction) => {
+        this.on("interactionCreate", async (interaction) => {
             let args = mapInteractionOptions(interaction.options);
 
             let func = that.commandManager.get(interaction.commandName);
@@ -40,16 +40,26 @@ class Ene extends Discord.Client {
                 return;
             }
 
-            func(that, interaction, args);
+            await func(that, interaction, args);
         });
     }
 
     _loadCommands() {
-        readdirSync("./commands").forEach((value) => {
-            let prop = require(`./commands/${value}`);
+        /**
+         * @param {Dirent} value 
+         */
+        const bindFunction = (path, value) => {
+            path = `${path}/${value.name}`;
+
+            if (value.isDirectory()) {
+                readdirSync(path, {withFileTypes: true}).forEach(v => bindFunction(path, v));
+                return;
+            }
+
+            let prop = require(path);
 
             if (!prop.command || !prop.run) {
-                console.error(`./commands/${value} file not valid.`);
+                console.error(`${path} file not valid.`);
                 return;
             }
 
@@ -58,7 +68,9 @@ class Ene extends Discord.Client {
             this.commandManager.set(prop.command.name, prop.run);
 
             console.log(`Loaded ${prop.command.name} command successfuly`);
-        });
+        }
+
+        readdirSync("./commands", {withFileTypes: true}).forEach(v => bindFunction("./commands", v));
     }
 }
 
