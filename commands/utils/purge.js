@@ -7,40 +7,40 @@ const { ApplicationCommandOptionType } = require("discord.js").Constants;
 /**
  * 
  * @param {import('../../Ene')} client
- * @param {Object} interaction 
- * @param {Map<string, number|string|boolean>} args 
+ * @param {Discord.Message} interaction 
+ * @param {string[]} args 
  */
-const purge = (client, interaction, args) => {
+const purge = (client, message, args) => {
     /**
      * @type {Discord.TextChannel}
      */
-    let channel = interaction.channel;
+    let channel = message.channel;
 
-    if (!interaction.member.hasPermission("MANAGE_MESSAGES")) {
+    if (!message.member.hasPermission("MANAGE_MESSAGES")) {
         channel.send("Ey', don't you think you're playing with somethin' you shouldn't ?");
     }
 
-    let amount = args.get("amount");
+    let amount = parseInt(args.shift());
 
-    channel.bulkDelete(amount)
-        .then(() => channel.send(`${amount} messages deleted.`))
-        .catch(err => channel.send(`Error during purge : \n\`\`\`\n${err}\n\`\`\``));
-};
+    if (isNaN(amount)) {
+        channel.send("Strange kind of number you sent...");
+        return;
+    };
 
-const command = {
-    name: "purge",
-    description: "Some devil messages above huh ?",
-    options: [
-        {
-            type: "INTEGER",
-            name: "amount",
-            description: "For how long does this heresy last ?",
-            required: true
-        }
-    ]
+    channel.startTyping();
+
+    channel.bulkDelete(amount + 1)
+        .then(() => { 
+            channel.send(`${amount} messages deleted.`).then((message) => setTimeout(() => message.delete(), 5000)); 
+            channel.stopTyping();
+        })
+        .catch(err => { 
+            channel.send(`Error during purge : \n\`\`\`\n${err}\n\`\`\``, ).then((message) => setTimeout(() => message.delete(), 5000));
+            channel.stopTyping();
+        });
 };
 
 module.exports = {
-    run: purge,
-    command: command
+    name: "purge",
+    run: purge
 };

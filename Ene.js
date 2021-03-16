@@ -3,8 +3,7 @@
  */
 
 const Discord = require("discord.js");
-const { readFileSync, readdirSync, existsSync, Dirent } = require("fs");
-const { mapInteractionOptions } = require("./util/util");
+const { readFileSync, readdirSync, existsSync, Dirent, fstat } = require("fs");
 
 process.env.ytbToken = readFileSync("./config/ytbToken.key");
 
@@ -12,36 +11,49 @@ class Ene extends Discord.Client {
     constructor() {
         super();
 
+        this.owner = readFileSync("./config/owner_id.key").toString().trim();
+
         /**
-         * @type {Map<string, function>}
+         * @type {string}
          */
-        this.commandManager = new Map();
+        this.prefix = "$";
+
+        /**
+         * @type {Object.<string, {run: function, name: string}>}
+         */
+        this.commandManager = {};
 
         /**
          * @type {Object.<Discord.Snowflake, EneAudio>}
          */
         this.audios = {};
+
+        /**
+         * @type {Object.<
+         *      string, 
+         *      Object.<
+         *          string, 
+         *          {color: string, role_id: string, cooldown: number}
+         *      >
+         *  >}
+         */
+        this.colors = require("./cache/colors.json");
+
+        /**
+         * @type {Object.<string, {log_id: string}>}
+         */
+        this.guilds_info = require("./cache/guilds_info.json");
     }
 
     run() {
         this._loadCommands();
+        this._loadEvents();
 
-        this.login(readFileSync("./config/token.key").toString());
+        this.login(readFileSync("./config/token.key").toString().trim());
 
         let that = this;
-
-        this.on("interactionCreate", async (interaction) => {
-            let args = mapInteractionOptions(interaction.options);
-
-            let func = that.commandManager.get(interaction.commandName);
-
-            if (!func) {
-                interaction.reply("Not implemented yet or has been deleted.");
-                return;
-            }
-
-            await func(that, interaction, args);
-        });
+        
+        // this.on("message", (message) => require("./events/message")(that, message));
     }
 
     _loadCommands() {
@@ -58,19 +70,41 @@ class Ene extends Discord.Client {
 
             let prop = require(path);
 
-            if (!prop.command || !prop.run) {
+            if (!prop.name || !prop.run) {
                 console.error(`${path} file not valid.`);
                 return;
             }
 
-            this.interactionClient.createCommand(prop.command);
+            this.commandManager[prop.name.toLowerCase()] = prop;
 
-            this.commandManager.set(prop.command.name, prop.run);
-
-            console.log(`Loaded ${prop.command.name} command successfuly`);
+            console.log(`Loaded ${prop.name} command successfuly`);
         }
 
         readdirSync("./commands", {withFileTypes: true}).forEach(v => bindFunction("./commands", v));
+    }
+
+    _loadEvents() {
+        const events = readdirSync("./events");
+
+        events.forEach((value) => {
+            this.on(value.split(".")[0], (...args) => require("./events/"+value)(this, ...args));
+            console.log(`Bound ${value.split(".")[0]} event.`);
+        });
+    }
+
+    /**
+     * 
+     * @param {string} guild_id 
+     * @param {string} message 
+     */
+    async guildLog(guild_id, message) {
+        if (!this.guilds_info[guild_id] || !this.guilds_info[guild_id].log_id) {
+            return;
+        }
+
+        const chan = await this.channels.fetch(this.guilds_info[guild_id].log_id);
+
+        if (chan.isText()) chan.send(message);
     }
 }
 

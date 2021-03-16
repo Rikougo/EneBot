@@ -25,7 +25,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
     "date-fns": "^2.16.1",
-    "discord.js": "github:discordjs/discord.js#1de89f0af9d847489f24b081758a6fb8e40e3fc3",
+    "discord.js": "^12.5.1",
     "ffmpeg": "0.0.4",
     "ffmpeg-static": "^4.2.7",
     "fs": "0.0.1-security",
