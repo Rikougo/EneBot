@@ -32,8 +32,6 @@ module.exports = async (client, oldMessage, newMessage) => {
     } else {
       _message.addField(`attach ${k}`, v.url);
     }
-
-    console.log(v);
   });
 
   client.guildLog(oldMessage.guild.id, _message);

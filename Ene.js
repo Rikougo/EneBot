@@ -11,8 +11,14 @@ const {
   Dirent,
   writeFileSync,
   mkdirSync,
+  write,
+  writeFile,
 } = require('fs');
-const CONFIG_PATH = './config/'
+const CONFIG_PATH = './config/';
+
+if (!existsSync(CONFIG_PATH)) {
+  mkdirSync(CONFIG_PATH);
+}
 
 if (existsSync(CONFIG_PATH + 'ytbToken.key')) {
   process.env.ytbToken = readFileSync(CONFIG_PATH + 'ytbToken.key');
@@ -27,7 +33,10 @@ class Ene extends Discord.Client {
     /**
      * @type {string}
      */
-    this.prefix = '5';
+    if (!existsSync(CONFIG_PATH + 'prefix.key')) {
+      writeFileSync(CONFIG_PATH + 'prefix.key', '$')
+    };
+    this.prefix = readFileSync(CONFIG_PATH + 'prefix.key');
 
     /**
      * @type {Object.<string, {run: function, name: string}>}
@@ -136,6 +145,16 @@ class Ene extends Discord.Client {
     const chan = await this.channels.fetch(this.guilds_info[guild_id].log_id);
 
     if (chan.isText()) chan.send(message);
+  }
+
+  /**
+   *
+   * @param {string} newPrefix
+   */
+  changePrefix(newPrefix) {
+    this.prefix = newPrefix;
+
+    writeFileSync(CONFIG_PATH + 'prefix.key', this.prefix);
   }
 }
 
