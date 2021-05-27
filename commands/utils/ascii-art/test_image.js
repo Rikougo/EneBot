@@ -28,6 +28,8 @@ const test_image = (client, message, args) => {
     return;
   }
 
+  let block_size = args.shift() || BLOCK_SIZE;
+
   let image = message.attachments.first();
 
   if (!image.name.endsWith('.png')) {
@@ -63,8 +65,8 @@ const test_image = (client, message, args) => {
           console.log(symbol_index + ' | ' + scale);
         }
 
-        let blockY = Math.floor(y / BLOCK_SIZE),
-            blockX = Math.floor(x / BLOCK_SIZE);
+        let blockY = Math.floor(y / block_size),
+            blockX = Math.floor(x / block_size);
 
         if (data[blockY]) {
           if (data[blockY][blockX]) {
