@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const {writeFileSync} = require('fs');
 
 module.exports = {
-  name: 'setLog',
+  name: 'setPrefix',
   /**
    *
    * @param {import("../../Ene")} client
