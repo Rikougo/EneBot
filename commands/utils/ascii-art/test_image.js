@@ -4,14 +4,16 @@
 const Discord = require('discord.js');
 const {ApplicationCommandOptionType} = require('discord.js').Constants;
 const Jimp = require('jimp');
+const {createCanvas} = require('canvas');
 
 const {
   existsSync,
   writeFileSync,
   mkdirSync,
+  unlinkSync,
 } = require('fs');
 
-const SCALES = [' ', '.', '-', '/', '@'];
+const SCALES = '@%#*+=-:. ';
 
 const BLOCK_SIZE = 2;
 
@@ -21,49 +23,33 @@ const BLOCK_SIZE = 2;
  * @param {Discord.Message} message
  * @param {string[]} args
  */
-const test_image = (client, message, args) => {
+const test_image = async (client, message, args) => {
   if (message.attachments.size === 0) {
     message.react('❌');
-    message.reply('Please submit an image file (png only).');
+    message.reply('Please submit an image file.');
     return;
   }
 
   let block_size = args.shift() || BLOCK_SIZE;
 
+  let returnImage = args.includes('--image') || args.includes('-i') || false;
+
   let image = message.attachments.first();
 
-  if (!image.name.endsWith('.png')) {
-    message.react('❌');
-    message.reply('Only support png files.');
-    return;
-  }
-
-  console.log(image.url);
-
-  Jimp.read(image.url, (err, img) => {
+  Jimp.read(image.url, async (err, img) => {
     if (err) {
-      message.reply(err.message);
+      message.reply(`Error during process :\n\`\`\`\n${err.message}\`\`\``);
       return;
     }
 
     let gc = img.greyscale();
 
-    console.log(gc.bitmap);
-
-    let result = '```\n';
-
     let data = [];
 
+    // iter through every pixels and add grayscale value to the correct block
     for (let y = 0; y < gc.bitmap.height; y++) {
       for (let x = 0; x < gc.bitmap.width; x++) {
         let scale = (gc.getPixelColor(x, y) >> 8 >>> 0) & 0xff;
-
-        let symbol_index =
-            Math.floor(((255 - Math.max(1, scale)) / 255) * SCALES.length);
-
-        if (symbol_index < 0 || symbol_index >= SCALES.length) {
-          console.log(symbol_index + ' | ' + scale);
-        }
 
         let blockY = Math.floor(y / block_size),
             blockX = Math.floor(x / block_size);
@@ -77,38 +63,72 @@ const test_image = (client, message, args) => {
         } else {
           data.push([scale]);
         }
-
-        result += SCALES[symbol_index];
       }
-      result += '\n';
     }
 
-    result += '```';
+    let trueResult = '';
 
-    let trueResult = '```\n';
-
+    // iter through blocks to build string
     for (let y = 0; y < data.length; y++) {
       for (let x = 0; x < data[0].length; x++) {
         let symbol_index =
             Math.floor(((255 - Math.max(1, data[y][x])) / 255) * SCALES.length);
+
+        if (symbol_index < 0 || symbol_index >= SCALES.length) {
+          console.log(
+              'ASCII img converter : error during char index search. Index : ' +
+              symbol_index + ' | Scale : ' + scale);
+        }
 
         trueResult += SCALES[symbol_index];
       }
       trueResult += '\n';
     }
 
-    trueResult += '```';
+    if (!returnImage) {
+      if (trueResult.length < 1950) {
+        message.channel.send(`\`\`\`\n${trueResult}\`\`\``);
+      } else {
+        if (!existsSync('./temp')) mkdirSync('./temp');
 
-    if (result.length < 2000) {
-      message.channel.send(result);
+        let file = `./temp/${Date.now()}.txt`;
+
+        writeFileSync(file, trueResult);
+
+        await message.channel.send({files: [{attachment: file, name: file}]});
+
+        unlinkSync(file);
+      }
     } else {
-      if (!existsSync('./temp')) mkdirSync('./temp');
+      const font_size = Math.max(15, block_size);
 
-      let file = `./temp/${Date.now()}.txt`;
+      const width = data[0].length * font_size;
+      const height = data.length * font_size;
 
-      writeFileSync(file, trueResult);
+      const canvas = createCanvas(width, height);
+      const context = canvas.getContext('2d');
 
-      message.channel.send({files: [{attachment: file, name: file}]});
+      context.fillStyle = '#36393f';
+      context.fillRect(0, 0, width, height);
+
+      context.fillStyle = '#ffffff';
+      context.font = `regular ${font_size}px monospace`;
+
+      for (let y = 0; y < data.length; y++) {
+        for (let x = 0; x < data[0].length; x++) {
+          let symbol_index = Math.floor(
+              ((255 - Math.max(1, data[y][x])) / 255) * SCALES.length);
+
+          context.fillText(SCALES[symbol_index], x * font_size, y * font_size);
+        }
+      }
+
+      let file = `./temp/${Date.now()}.png`
+      writeFileSync(file, canvas.toBuffer('image/png'));
+
+      await message.channel.send({files: [{attachment: file, name: file}]});
+
+      unlinkSync(file);
     }
   });
 };

@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Rikougo/enebot#readme",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
+    "canvas": "^2.8.0",
     "date-fns": "^2.16.1",
     "discord.js": "^12.5.1",
     "ffmpeg": "0.0.4",
